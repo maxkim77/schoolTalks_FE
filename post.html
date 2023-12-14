@@ -23,44 +23,145 @@
     <link rel="stylesheet" href="assets/css/glightbox.min.css" />
     <link rel="stylesheet" href="assets/css/main.css" />
     <style>
-        .posts {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            grid-gap: 20px;
-            margin-top: 20px;
+        * {
+            box-sizing: border-box;
         }
         
-        .post-item {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #eee;
         }
-        
-        .post-image img {
-            width: 100%;
-            height: auto;
-            display: block;
+
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        
-        .post-content {
+        .navbar h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        #postContainer {
+            max-width: 600px;
+            margin: 20px auto;
             padding: 15px;
+            background: white;
+            border: 1px solid #dbdbdb;
+        }
+
+        #postContainer img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        #postContainer p {
+            margin: 10px 0;
+        }
+
+        #likeButton {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #likeButton:hover {
+            background-color: #0086e5;
+        }
+
+        #commentsContainer {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dbdbdb;
+        }
+
+        #commentForm {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dbdbdb;
+            display: flex;
+            gap: 10px;
+        }
+
+        #commentForm input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #dbdbdb;
+            border-radius: 5px;
+        }
+
+        #commentForm button {
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #commentForm button:hover {
+            background-color: #0086e5;
+        }
+
+        #logoutButton{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #logoutButton:hover{
+            background-color: #0086e5;
+        }
+        #profile{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #profile:hover{
+            background-color: #0086e5;
+        }
+        #createpost{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #createpost:hover{
+            background-color: #0086e5;
         }
         
-        .post-footer {
-            padding: 10px 15px;
-            text-align: right;
+        .logo{
+            font-size: 24px;
+            margin: 0;
         }
-        
-        .post-link {
-            color: #0066cc;
+        .logo a{
+            color: black;
             text-decoration: none;
-            font-weight: bold;
         }
-        </style>
-        
-        
+    </style>
 </head>
 
 <body>
@@ -162,18 +263,27 @@
         <!-- 사용자가 로그인을 했다면 로그아웃 필드가 여기 생성됩니다. -->
     </div>
     <!-- Start Hero Area -->
-    <div class="container mt-4">
-        <div class="posts" id="posts">
-            <!-- Dynamically load posts here -->
-            <!-- Example Post -->
-
-            <!-- Repeat with other posts -->
-        </div>
+  
+    <div id="postContainer">
+        <!-- 게시물 상세 정보가 여기에 표시됩니다 -->
     </div>
-    <div class="pagination" id="pagination"></div>
 
-    <!-- /End About Us Area -->
+    <div id="likeButton">
+        <button>좋아요</button>
+    </div>
 
+    <div id="commentsContainer">
+        <!-- 댓글이 여기에 표시됩니다 -->
+    </div>
+    <div id="editDeleteButtons">
+        <!-- 게시물 작성자인 경우에만 수정과 삭제 버튼을 보이게 합니다 -->
+        <button id="editPostButton">수정</button>
+        <button id="deletePostButton">삭제</button>
+    </div>
+    <form id="commentForm">
+        <input type="text" id="commentText" placeholder="댓글 달기...">
+        <button type="submit">댓글 작성</button>
+    </form>
 
 
     <!-- Start Footer Area -->
@@ -213,7 +323,7 @@
     <script src="assets/js/tiny-slider.js"></script>
     <script src="assets/js/glightbox.min.js"></script>
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/post.js"></script>
+    <script src="assets/js/post-pk.js"></script>
     <script type="text/javascript">
         //========= Hero Slider 
         tns({
