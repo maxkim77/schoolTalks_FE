@@ -1,110 +1,61 @@
 document.addEventListener('DOMContentLoaded', function() {
     const accessToken = localStorage.getItem('access_token');
+    setupUIBasedOnAccessToken(accessToken);
+    if (!accessToken) {
+        refreshToken();
+    } else {
+        fetchPosts(1);
+    }
+    // 검색 버튼 클릭 이벤트 처리
+document.getElementById('searchButton').addEventListener('click', function() {
+    const searchInput = document.getElementById('searchInput').value;
+    if (searchInput.trim() !== '') {
+        performSearch(searchInput);
+    }
+});
 
-    // accessToken 만료 확인은 하지 않았습니다.
+});
+
+function performSearch(query) {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const url = `http://127.0.0.1:8000/posts/list/?search=${query}`;
+    fetchPostsFromUrl(url);
+}
+
+function setupUIBasedOnAccessToken(accessToken) {
     if (accessToken) {
         document.querySelector('.loginfield').innerHTML = `
             <button id="logoutButton">Logout</button>
             <button id="createpost">Create</button>
             <button id="profile">Profile</button>
         `;
+        setupEventListeners();
     }
+}
 
-    // 로그아웃 버튼 클릭 이벤트 리스너
-    document.getElementById('logoutButton').addEventListener('click', function() {
+function setupEventListeners() {
+    document.getElementById('logoutButton')?.addEventListener('click', function() {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = 'login.html'; // 로그인 페이지로 리디렉트
+        window.location.href = 'login.html';
     });
 
-    // 게시물 생성 버튼 클릭 이벤트 리스너
-    document.getElementById('createpost').addEventListener('click', function() {
+    document.getElementById('createpost')?.addEventListener('click', function() {
         window.location.href = 'create-post.html';
     });
 
-    // 프로필 버튼 클릭 이벤트 리스너
-    document.getElementById('profile').addEventListener('click', function() {
+    document.getElementById('profile')?.addEventListener('click', function() {
         window.location.href = 'profile.html';
-    });
-});
-
-// check1. access token이 없으면 로그인 페이지로 리디렉트
-// check2. access token이 있는데 만료되었다면 refresh token으로 재발급 시도
-// chekc3. access token이 있고 유효하다면 게시물을 불러옵니다.
-document.addEventListener('DOMContentLoaded', function() {
-    const accessToken = localStorage.getItem('access_token');
-
-    if (!accessToken) {
-        refreshToken(); // 액세스 토큰이 없으면 리프레시 토큰으로 재발급 시도
-    } else {
-        fetchPosts();
-    }
-});
-
-function fetchPosts() {
-    const accessToken = localStorage.getItem('access_token');
-
-    if (!accessToken) {
-        // 토큰이 없으면 로그인 페이지로 리디렉트
-        window.location.href = 'login.html';
-        return;
-    }
-
-    fetch('http://127.0.0.1:8000/posts/list/', {
-        headers: {
-            'Authorization': 'Bearer ' + accessToken
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            // 응답이 유효하지 않으면 리프레시 토큰으로 재발급 시도
-            refreshToken()
-            return;
-        }
-
-        let res = response.json();
-        return res;
-    })
-    .then(data => {
-        const postsContainer = document.getElementById('posts');
-        console.log(data);
-        if (data && data.length > 0) {
-            data.forEach(post => {
-                const postElement = document.createElement('div');
-                postElement.className = 'post';
-                postElement.innerHTML = `
-                
-                <div class="post-content">
-                    <h3>${post.title}</h3>  <!-- 게시물 제목 -->
-                    <p>${post.caption}</p>   <!-- 게시물 내용 -->
-                </div>
-                <div class="post-footer">
-                    <a href="#" class="post-link">더보기</a>  <!-- '더보기' 링크 (상세 페이지로 연결해야 함) -->
-                </div>
-            `;
-                postElement.addEventListener('click', () => {
-                    // 게시물 클릭 시 post.html로 이동하며, 게시물 ID를 URL에 포함
-                    window.location.href = `post.html?postId=${post.id}`;
-                });
-                //<img src="${post.image}" alt="Post image">
-                postsContainer.appendChild(postElement);
-            });
-        } else {
-            const postElement = document.createElement('div');
-            postElement.className = 'post';
-            postElement.innerHTML = `<p>게시물이 없습니다.</p>`;
-            postsContainer.appendChild(postElement);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // window.location.href = 'login.html';
     });
 }
 
 function refreshToken() {
     const refreshToken = localStorage.getItem('refresh_token');
-
     if (!refreshToken) {
         window.location.href = 'login.html';
         return;
@@ -112,18 +63,16 @@ function refreshToken() {
 
     fetch('http://127.0.0.1:8000/api/token/refresh/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: refreshToken })
     })
     .then(response => response.json())
     .then(data => {
         if (data.access) {
             localStorage.setItem('access_token', data.access);
-            fetchPosts(); // 액세스 토큰 재발급 후 게시물 다시 불러오기
+            fetchPosts(1);
         } else {
-            window.location.href = 'login.html'; // 리프레시 토큰 만료 시 로그인 페이지로
+            window.location.href = 'login.html';
         }
     })
     .catch(error => {
@@ -132,3 +81,147 @@ function refreshToken() {
     });
 }
 
+function fetchPosts(pageNumber) {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const url = `http://127.0.0.1:8000/posts/list/?page=${pageNumber}`;
+    fetch(url, {
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+    })
+    .then(response => {
+        if (!response.ok) {
+            refreshToken();
+            return;
+        }
+        return response.json();
+    })
+    .then(data => {
+        const postsContainer = document.getElementById('posts');
+        postsContainer.innerHTML = ''; // Clear existing posts
+        if (data && data.results) {
+            data.results.forEach(post => {
+                const postElement = createPostElement(post);
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        if (data.pagination) {
+            createPaginationLinks(data.pagination);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+
+function createPostElement(post) {
+    const postElement = document.createElement('div');
+    postElement.className = 'post';
+    postElement.innerHTML = `
+        <div class="post-content">
+            <h3>${post.title}</h3>
+            <p>${post.caption}</p>
+        </div>
+        <div class="post-footer">
+            <a href="post.html?postId=${post.id}" class="post-link">더보기</a>
+        </div>
+    `;
+    return postElement;
+}
+
+function createPageLink(text, pageNumber) {
+    const link = document.createElement('a');
+    link.href = '#';
+    link.textContent = text;
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        fetchPosts(pageNumber);
+    });
+    return link;
+}
+// ... (이전 코드 생략)
+
+function createPaginationLinks(data) {
+    const paginationContainer = document.getElementById('paginationContainer');
+    paginationContainer.innerHTML = ''; // Clear existing pagination
+
+    const ul = document.createElement('ul');
+    ul.classList.add('pagination');
+
+    // Previous page link
+    if (data.previous) {
+        const prevPageNumber = getPageNumberFromUrl(data.previous);
+        ul.appendChild(createPageLink('Previous', prevPageNumber));
+    }
+
+    // Next page link
+    if (data.next) {
+        const nextPageNumber = getPageNumberFromUrl(data.next);
+        ul.appendChild(createPageLink('Next', nextPageNumber));
+    }
+
+    paginationContainer.appendChild(ul);
+}
+
+
+
+function getPageNumberFromUrl(url) {
+    const urlObj = new URL(url);
+    return urlObj.searchParams.get('page');
+}
+
+
+
+function createPageLink(text, pageUrl) {
+    const link = document.createElement('a');
+    link.href = '#';
+    link.textContent = text;
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const pageNumber = pageUrl.split('=')[1];
+        fetchPosts(pageNumber);
+    });
+    return link;
+}
+
+
+function fetchPostsFromUrl(url) {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    fetch(url, {
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+    })
+    .then(response => {
+        if (!response.ok) {
+            refreshToken();
+            return;
+        }
+        return response.json();
+    })
+    .then(data => {
+        const postsContainer = document.getElementById('posts');
+        postsContainer.innerHTML = ''; // Clear existing posts
+        if (data && data.results) {
+            data.results.forEach(post => {
+                const postElement = createPostElement(post);
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        if (data) {
+            createPaginationLinks(data);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}

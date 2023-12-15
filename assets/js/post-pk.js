@@ -61,10 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 수정 버튼 클릭 이벤트 리스너
     document.getElementById('editPostButton').addEventListener('click', function() {
         if (postId) {
-            const editPostUrl = `http://127.0.0.1:5500/SchoolTalks_FE/edit-post.html?postId=${postId}`;
+            const editPostUrl = `edit-post.html?postId=${postId}`;
             window.location.href = editPostUrl;
         }
-    });
+    }); 
 
     // 삭제 버튼 클릭 이벤트 리스너
      // 삭제 버튼 클릭 이벤트 리스너
