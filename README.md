@@ -59,3 +59,78 @@ class StudyComment(models.Model):
 
 위와 같이 related_name을 설정한 후, makemigrations 및 migrate 명령을 실행하여 데이터베이스를 업데이트합니다.
 이렇게 하면 역 관계 이름 충돌 문제가 해결됩니다.
+
+
+이전 코드 (PUT 방식으로 게시물 수정)
+
+javascript
+Copy code
+// 이전 코드에서는 PUT 방식으로 게시물을 수정하려고 시도
+fetch(`http://127.0.0.1:8000/study/${postId}/update/`, {
+    method: 'PUT',
+    headers: {
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        title: editedTitle,
+        caption: editedCaption,
+        image: image,
+        attachment: attachment,
+    }),
+})
+변경 후 코드 (PATCH 방식으로 게시물 수정 및 이미지 및 첨부 파일 선택 가능)
+
+javascript
+Copy code
+// 변경 후 코드에서는 PATCH 방식으로 게시물을 수정하며 이미지와 첨부 파일 선택 여부와 상관없이 수정된 정보가 전송됨
+document.getElementById('editPostForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const editedTitle = document.getElementById('postTitle').value;
+    const editedCaption = document.getElementById('postCaption').value;
+    const imageInput = document.getElementById('postImage');
+    const attachmentInput = document.getElementById('postAttachment');
+
+    const formData = new FormData();
+    formData.append('title', editedTitle);
+    formData.append('caption', editedCaption);
+
+    // 이미지 파일이 선택된 경우에만 FormData에 추가
+    if (imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
+    }
+
+    // 첨부 파일이 선택된 경우에만 FormData에 추가
+    if (attachmentInput.files.length > 0) {
+        formData.append('attachment', attachmentInput.files[0]);
+    }
+
+    fetch(`http://127.0.0.1:8000/study/${postId}/update/`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': 'Bearer ' + accessToken,
+        },
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('게시물 수정 중 오류가 발생했습니다.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('게시물이 성공적으로 수정되었습니다:', data);
+        // 수정 후 해당 게시물로 이동
+        window.location.href = `post.html?postId=${postId}`;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('게시물 수정 실패');
+    });
+});
+변경 후 코드에서는 다음과 같은 주요 변경 사항이 있습니다:
+
+HTTP 메소드: 이전 코드에서는 PUT 방식을 사용했으나, 변경 후 코드에서는 PATCH 방식을 사용하여 게시물을 수정합니다.
+
+FormData 사용: 이미지와 첨부 파일을 선택 여부와 상관없이 FormData에 추가합니다. 이미지 파일과 첨부 파일이 선택되지 않은 경우 FormData에는 추가되지 않습니다.
